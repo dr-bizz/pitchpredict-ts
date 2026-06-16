@@ -20,6 +20,9 @@
  * `DATABASE_URL`. This module also typechecks without one — `seedDatabase` only
  * touches the DB when called.
  */
+import * as dotenv from 'dotenv';
+// Load env before ./client lazily connects (Next convention: .env.local, then .env).
+dotenv.config({ path: ['.env.local', '.env'] });
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { db as singletonDb, type Db } from './client';

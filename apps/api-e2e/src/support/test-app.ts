@@ -17,7 +17,7 @@
  * suite cleanly when neither is set (kept "green by construction" — see README).
  */
 import 'reflect-metadata';
-import { ValidationPipe, type INestApplication } from '@nestjs/common';
+import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import {
   SignJWT,
@@ -127,8 +127,11 @@ export async function createTestHarness(): Promise<TestHarness> {
     imports: [AppModule],
   }).compile();
 
+  // NOTE: the real app (apps/api/src/main.ts) does NOT register a global
+  // ValidationPipe — request validation is done per-route with Zod
+  // (zodBody/zodQuery). Mirror that here so the harness matches production and
+  // doesn't pull in class-validator (which isn't a dependency).
   const app = moduleRef.createNestApplication();
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   await app.init();
 
   async function signToken(subject: TokenSubject): Promise<string> {

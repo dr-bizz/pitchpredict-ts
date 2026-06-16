@@ -135,6 +135,18 @@ const GROUP_SCHEDULE: ReadonlyArray<
 /** ET kickoff slots used only by the illustrative knockout bracket. */
 const KICKOFF_HOURS = [16, 19, 22] as const;
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Add whole days to an ET kickoff. Uses millisecond arithmetic, which rolls
+ * across month boundaries correctly (June→July) — the naive `28 + offset` day
+ * number would otherwise produce non-existent dates like "June 31". The whole
+ * knockout window is June/July (EDT, no DST change), so the wall-clock hour is
+ * preserved.
+ */
+const addDays = (base: Date, days: number): Date =>
+  new Date(base.getTime() + days * MS_PER_DAY);
+
 const NUM_STADIUMS = 16;
 const knockoutStadium = (i: number) => i % NUM_STADIUMS;
 
@@ -166,10 +178,12 @@ export function buildFixtureSpecs(): FixtureSpec[] {
 
   const bracket = bracketSlots(); // length 32
 
-  // Round of 32: June 28 – July 3
+  // Round of 32: June 28 – July 3 (3 matches/day, rolling into July)
   for (let i = 0; i < 16; i++) {
-    const baseDay = 28 + Math.floor(i / 3);
-    const kickoffAt = etKickoff(6, baseDay, KICKOFF_HOURS[i % 3]);
+    const kickoffAt = addDays(
+      etKickoff(6, 28, KICKOFF_HOURS[i % 3]),
+      Math.floor(i / 3)
+    );
     specs.push({
       ref: { homeSlot: bracket[i], awaySlot: bracket[31 - i] },
       stadiumIdx: knockoutStadium(i),

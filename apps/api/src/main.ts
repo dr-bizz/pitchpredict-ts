@@ -1,3 +1,7 @@
+import * as dotenv from 'dotenv';
+// Local dev loads env from the workspace-root .env.local (Next convention), then .env.
+// In production, real environment variables are already present and take precedence.
+dotenv.config({ path: ['.env.local', '.env'] });
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
