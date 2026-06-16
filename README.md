@@ -103,10 +103,29 @@ npx nx run-many -t build           # production builds
 npx nx run-many -t lint build test # everything
 ```
 
-End-to-end (Playwright) lives in `apps/web-e2e`:
+### End-to-end suites
+
+Both e2e suites need a **seeded** Postgres (`nx run db:seed`). Without one they are
+green by construction (skipped, with a notice) so `nx run-many -t test/lint` stays
+clean in CI.
+
+**API e2e** (`apps/api-e2e`, supertest) boots the Nest `AppModule` in-process with
+its own ephemeral RS256/JWKS, then exercises: signup → login; predict open (200) vs
+locked (422); champion-pick lock (422); admin result entry → leaderboard points; and
+non-admin → 403. Point it at a seeded DB and run:
 
 ```bash
-npx nx e2e web-e2e
+TEST_DATABASE_URL=postgres://… npx nx e2e api-e2e   # or: npx nx test api-e2e
+```
+
+**Web e2e** (`apps/web-e2e`, Playwright) drives the real UI: log in as demo →
+predict an open fixture → save → leaderboard renders. It needs the API + web running
+against a seeded DB. The Playwright config starts the web dev server; start the API
+yourself. Enable the flow with `E2E_SEEDED=1`:
+
+```bash
+npx nx serve api                       # terminal 1 (seeded DATABASE_URL)
+E2E_SEEDED=1 npx nx e2e web-e2e        # terminal 2 (starts web, runs the flow)
 ```
 
 ## Project layout
