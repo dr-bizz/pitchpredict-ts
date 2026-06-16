@@ -1,4 +1,4 @@
-import { users } from '@pitchpredict/db';
+import { users } from '@pitchpredict/db/schema';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { zRole } from './enums';

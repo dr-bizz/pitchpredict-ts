@@ -16,6 +16,15 @@ export default [
   ...nx.configs['flat/react-typescript'],
   ...baseConfig,
   {
-    ignores: ['.next/**/*'],
+    // Ignore build output and next-pwa generated artifacts (service worker,
+    // workbox runtime, offline fallback) — these are generated, not source.
+    ignores: [
+      '.next/**/*',
+      'public/sw.js',
+      'public/sw.js.map',
+      'public/workbox-*.js',
+      'public/workbox-*.js.map',
+      'public/fallback-*.js',
+    ],
   },
 ];

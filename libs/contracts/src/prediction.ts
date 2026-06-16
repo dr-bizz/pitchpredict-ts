@@ -1,4 +1,4 @@
-import { predictions } from '@pitchpredict/db';
+import { predictions } from '@pitchpredict/db/schema';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 

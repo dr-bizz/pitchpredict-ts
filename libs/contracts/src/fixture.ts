@@ -1,4 +1,4 @@
-import { fixtures } from '@pitchpredict/db';
+import { fixtures } from '@pitchpredict/db/schema';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { zStage, zStatus } from './enums';

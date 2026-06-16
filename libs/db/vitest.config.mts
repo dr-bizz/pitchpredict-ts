@@ -10,6 +10,9 @@ export default defineConfig(() => ({
     name: 'db',
     watch: false,
     globals: true,
+    // The db lib ships schema/client/seed only; its behavior is exercised by the
+    // api and contracts test suites. No unit specs live here, so don't fail.
+    passWithNoTests: true,
     environment: 'node',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],

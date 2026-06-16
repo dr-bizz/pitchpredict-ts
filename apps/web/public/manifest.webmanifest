@@ -1,0 +1,48 @@
+{
+  "name": "PitchPredict",
+  "short_name": "PitchPredict",
+  "description": "World Cup 2026 score-prediction game.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0A7B4B",
+  "background_color": "#F7F8F6",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Predictions",
+      "short_name": "Predictions",
+      "description": "Make your match predictions",
+      "url": "/predictions",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "Leaderboard",
+      "short_name": "Leaderboard",
+      "description": "See the live leaderboard",
+      "url": "/leaderboard",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512", "type": "image/png" }]
+    }
+  ]
+}

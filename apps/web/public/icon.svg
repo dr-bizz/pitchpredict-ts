@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PitchPredict">
+  <defs>
+    <linearGradient id="pp-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A7B4B"/>
+      <stop offset="1" stop-color="#0A7B7B"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded emerald->teal tile -->
+  <rect width="512" height="512" rx="112" fill="url(#pp-bg)"/>
+  <!-- Pitch outline -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round">
+    <rect x="96" y="128" width="320" height="256" rx="24"/>
+    <line x1="256" y1="128" x2="256" y2="384"/>
+    <circle cx="256" cy="256" r="58"/>
+    <!-- Goal boxes -->
+    <path d="M96 208h44v96H96"/>
+    <path d="M416 208h-44v96h44"/>
+  </g>
+  <!-- Gold ball on the center spot -->
+  <circle cx="256" cy="256" r="26" fill="#E8B53D"/>
+</svg>

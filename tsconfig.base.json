@@ -23,7 +23,8 @@
     "resolveJsonModule": true,
     "paths": {
       "@pitchpredict/contracts": ["libs/contracts/src/index.ts"],
-      "@pitchpredict/db": ["libs/db/src/index.ts"]
+      "@pitchpredict/db": ["libs/db/src/index.ts"],
+      "@pitchpredict/db/schema": ["libs/db/src/schema-only.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
