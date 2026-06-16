@@ -1,1 +1,2 @@
-export * from './lib/db';
+export * from './schema';
+export * from './client';

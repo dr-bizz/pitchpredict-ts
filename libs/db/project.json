@@ -4,6 +4,15 @@
   "sourceRoot": "libs/db/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project db --web",
-  "targets": {}
+  "targets": {
+    "db:generate": {
+      "command": "drizzle-kit generate --config=libs/db/drizzle.config.ts"
+    },
+    "db:migrate": {
+      "command": "drizzle-kit migrate --config=libs/db/drizzle.config.ts"
+    },
+    "db:seed": {
+      "command": "tsx libs/db/src/seed.ts"
+    }
+  }
 }
