@@ -23,3 +23,43 @@ export const fixtureWithTeamsSchema = fixtureSchema.extend({
   locked: z.boolean(),
 });
 export type FixtureWithTeams = z.infer<typeof fixtureWithTeamsSchema>;
+
+/**
+ * Query string for `GET /fixtures`. `stage` is an optional `StageTab`; anything
+ * absent/unknown is treated as `upcoming` by the service.
+ */
+export const fixtureQuerySchema = z.object({
+  stage: z
+    .enum([
+      'upcoming',
+      'group',
+      'r32',
+      'r16',
+      'qf',
+      'sf',
+      'third_place',
+      'final',
+    ])
+    .optional(),
+});
+export type FixtureQuery = z.infer<typeof fixtureQuerySchema>;
+
+/**
+ * Query string for the admin fixtures list. Both filters are optional; an
+ * absent/unknown value means "all" (the service ignores it).
+ */
+export const adminFixtureQuerySchema = z.object({
+  stage: zStage.optional(),
+  status: zStatus.optional(),
+});
+export type AdminFixtureQuery = z.infer<typeof adminFixtureQuerySchema>;
+
+/**
+ * Body for entering a fixture result (admin). Scores are non-negative integers;
+ * entering a result always finishes the fixture, so both are required.
+ */
+export const fixtureResultInputSchema = z.object({
+  homeScore: z.number().int().min(0),
+  awayScore: z.number().int().min(0),
+});
+export type FixtureResultInput = z.infer<typeof fixtureResultInputSchema>;
