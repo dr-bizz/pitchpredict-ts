@@ -8,8 +8,7 @@ import { alpha } from '@mui/material/styles';
 import type { LeaderboardRow } from '@pitchpredict/contracts';
 
 const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
-/** Visual order: 2nd, 1st, 3rd (1st in the middle and tallest). */
-const DISPLAY_ORDER = [2, 1, 3];
+/** Podium slot heights: center (1st) tallest, then left (2nd), then right (3rd). */
 const HEIGHTS: Record<number, number> = { 1: 140, 2: 110, 3: 88 };
 
 export interface PodiumProps {
@@ -20,12 +19,18 @@ export interface PodiumProps {
 
 /** Top-3 podium with medals, taller center step for first place. */
 export function Podium({ rows, currentUserId }: PodiumProps) {
-  const byRank = new Map(rows.map((r) => [r.rank, r]));
-  const present = DISPLAY_ORDER.map((rank) => byRank.get(rank)).filter(
-    (r): r is LeaderboardRow => !!r
-  );
-
-  if (present.length === 0) return null;
+  // Take the top three rows by display order — NOT keyed by rank, because ranks
+  // tie (a tie at #1 means there may be no rank-2 row, and two rows share rank 1).
+  // Visual columns: 2nd on the left, 1st in the (tallest) center, 3rd on the right.
+  // The medal reflects each row's real rank (tied leaders both show 🥇); the step
+  // height reflects the podium slot.
+  const top = rows.slice(0, 3);
+  if (top.length === 0) return null;
+  const columns = [
+    { row: top[1], slot: 2 },
+    { row: top[0], slot: 1 },
+    { row: top[2], slot: 3 },
+  ].filter((c): c is { row: LeaderboardRow; slot: number } => Boolean(c.row));
 
   return (
     <Box
@@ -37,13 +42,11 @@ export function Podium({ rows, currentUserId }: PodiumProps) {
         py: 2,
       }}
     >
-      {DISPLAY_ORDER.map((rank) => {
-        const row = byRank.get(rank);
-        if (!row) return null;
+      {columns.map(({ row, slot }) => {
         const mine = currentUserId != null && row.user.id === currentUserId;
         return (
           <Box
-            key={rank}
+            key={row.user.id}
             sx={{
               display: 'flex',
               flexDirection: 'column',
@@ -54,7 +57,7 @@ export function Podium({ rows, currentUserId }: PodiumProps) {
             }}
           >
             <Box sx={{ fontSize: '1.75rem', lineHeight: 1 }} aria-hidden>
-              {MEDALS[rank]}
+              {MEDALS[row.rank] ?? MEDALS[slot]}
             </Box>
             <Avatar
               sx={{
@@ -86,7 +89,7 @@ export function Podium({ rows, currentUserId }: PodiumProps) {
               elevation={0}
               sx={{
                 width: '100%',
-                height: HEIGHTS[rank],
+                height: HEIGHTS[slot],
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'center',

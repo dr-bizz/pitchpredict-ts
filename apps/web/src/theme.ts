@@ -32,7 +32,7 @@ export const theme = createTheme({
   },
   typography: {
     fontFamily:
-      'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+      'var(--font-roboto), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   components: {
     MuiCard: {
