@@ -22,7 +22,15 @@ export async function upsert(
     throw new NotFoundError(`Fixture ${fixtureId} not found`);
   }
   if (
-    isFixtureLocked({ kickoffAt: fixture.kickoffAt, status: fixture.status }, now)
+    isFixtureLocked(
+      {
+        kickoffAt: fixture.kickoffAt,
+        status: fixture.status,
+        homeTeamId: fixture.homeTeamId,
+        awayTeamId: fixture.awayTeamId,
+      },
+      now
+    )
   ) {
     throw new BusinessError('Predictions are locked for this match');
   }

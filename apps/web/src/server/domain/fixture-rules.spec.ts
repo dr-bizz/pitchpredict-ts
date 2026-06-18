@@ -1,10 +1,19 @@
-import { isFixtureLocked, tournamentStarted } from './fixture-rules';
+import {
+  isFixtureLocked,
+  championPicksLocked,
+  CHAMPION_PICK_DEADLINE,
+} from './fixture-rules';
 
 describe('isFixtureLocked', () => {
   const now = new Date('2026-06-16T12:00:00Z');
 
   it('is open for a scheduled fixture kicking off in the future', () => {
-    const f = { kickoffAt: new Date('2026-06-16T13:00:00Z'), status: 'scheduled' };
+    const f = {
+      kickoffAt: new Date('2026-06-16T13:00:00Z'),
+      status: 'scheduled',
+      homeTeamId: 10,
+      awayTeamId: 20,
+    };
     expect(isFixtureLocked(f, now)).toBe(false);
   });
 
@@ -29,27 +38,62 @@ describe('isFixtureLocked', () => {
   });
 
   it('defaults `now` to the current time', () => {
-    const f = { kickoffAt: new Date(Date.now() + 60_000), status: 'scheduled' };
+    const f = {
+      kickoffAt: new Date(Date.now() + 60_000),
+      status: 'scheduled',
+      homeTeamId: 10,
+      awayTeamId: 20,
+    };
     expect(isFixtureLocked(f)).toBe(false);
+  });
+
+  it('is locked when the home team is not yet assigned (TBD knockout slot)', () => {
+    const f = {
+      kickoffAt: new Date('2026-06-16T13:00:00Z'),
+      status: 'scheduled',
+      homeTeamId: null,
+      awayTeamId: 20,
+    };
+    expect(isFixtureLocked(f, now)).toBe(true);
+  });
+
+  it('is locked when the away team is not yet assigned (TBD knockout slot)', () => {
+    const f = {
+      kickoffAt: new Date('2026-06-16T13:00:00Z'),
+      status: 'scheduled',
+      homeTeamId: 10,
+      awayTeamId: null,
+    };
+    expect(isFixtureLocked(f, now)).toBe(true);
+  });
+
+  it('is open once both teams are assigned and kickoff is still in the future', () => {
+    const f = {
+      kickoffAt: new Date('2026-06-16T13:00:00Z'),
+      status: 'scheduled',
+      homeTeamId: 10,
+      awayTeamId: 20,
+    };
+    expect(isFixtureLocked(f, now)).toBe(false);
   });
 });
 
-describe('tournamentStarted', () => {
-  const now = new Date('2026-06-16T12:00:00Z');
-
-  it('is false when there is no earliest kickoff', () => {
-    expect(tournamentStarted(null, now)).toBe(false);
+describe('championPicksLocked', () => {
+  it('is open before the fixed deadline', () => {
+    const before = new Date('2026-06-20T21:59:59Z');
+    expect(championPicksLocked(before)).toBe(false);
   });
 
-  it('is false when the earliest kickoff is in the future', () => {
-    expect(tournamentStarted(new Date('2026-06-16T13:00:00Z'), now)).toBe(false);
+  it('is locked exactly at the deadline', () => {
+    expect(championPicksLocked(CHAMPION_PICK_DEADLINE)).toBe(true);
   });
 
-  it('is true once the earliest kickoff has passed', () => {
-    expect(tournamentStarted(new Date('2026-06-16T11:00:00Z'), now)).toBe(true);
+  it('is locked after the deadline', () => {
+    const after = new Date('2026-06-20T22:00:01Z');
+    expect(championPicksLocked(after)).toBe(true);
   });
 
-  it('is true exactly at the earliest kickoff', () => {
-    expect(tournamentStarted(new Date('2026-06-16T12:00:00Z'), now)).toBe(true);
+  it('uses the 2026-06-20T22:00:00Z deadline by default', () => {
+    expect(CHAMPION_PICK_DEADLINE.toISOString()).toBe('2026-06-20T22:00:00.000Z');
   });
 });

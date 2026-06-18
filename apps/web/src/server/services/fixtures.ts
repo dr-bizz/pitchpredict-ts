@@ -7,10 +7,13 @@ import type {
 import { and, asc, eq, gt, inArray } from 'drizzle-orm';
 import { isFixtureLocked } from '../domain/fixture-rules';
 
-/** A fixture row joined with its teams + stadium, before `locked` is computed. */
+/**
+ * A fixture row joined with its teams + stadium, before `locked` is computed.
+ * Knockout fixtures may have null teams (TBD) until the admin assigns them.
+ */
 type FixtureWithRelations = typeof schema.fixtures.$inferSelect & {
-  homeTeam: typeof schema.teams.$inferSelect;
-  awayTeam: typeof schema.teams.$inferSelect;
+  homeTeam: typeof schema.teams.$inferSelect | null;
+  awayTeam: typeof schema.teams.$inferSelect | null;
   stadium: typeof schema.stadiums.$inferSelect;
 };
 
@@ -94,7 +97,12 @@ function withLocked(
   return {
     ...row,
     locked: isFixtureLocked(
-      { kickoffAt: row.kickoffAt, status: row.status },
+      {
+        kickoffAt: row.kickoffAt,
+        status: row.status,
+        homeTeamId: row.homeTeamId,
+        awayTeamId: row.awayTeamId,
+      },
       now
     ),
   };
@@ -118,11 +126,13 @@ function groupByDate(fixtures: FixtureWithTeams[]): FixtureGroup[] {
 /**
  * Ordered groups keyed by the home team's group name (assumption mirrored from
  * Rails: group-stage fixtures always pair same-group teams), sorted by label.
+ * This only runs for the group stage, whose fixtures always have teams; the
+ * `?? ''` fallback is defensive for the nullable knockout type.
  */
 function groupByGroupName(fixtures: FixtureWithTeams[]): FixtureGroup[] {
   const groups: FixtureGroup[] = [];
   for (const fixture of fixtures) {
-    const label = fixture.homeTeam.groupName;
+    const label = fixture.homeTeam?.groupName ?? '';
     const existing = groups.find((g) => g.label === label);
     if (existing) {
       existing.fixtures.push(fixture);

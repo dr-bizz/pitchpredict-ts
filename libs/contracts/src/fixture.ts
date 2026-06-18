@@ -13,16 +13,29 @@ export type Fixture = z.infer<typeof fixtureSchema>;
 
 /**
  * A fixture with its related teams and stadium embedded, plus the computed
- * `locked` flag (kickoff passed or status no longer `scheduled`). Used by the
- * fixtures list / prediction cards.
+ * `locked` flag (kickoff passed, status no longer `scheduled`, or a team not yet
+ * assigned). Used by the fixtures list / prediction cards. Knockout fixtures may
+ * have null teams (TBD) until the admin assigns them, so `homeTeam`/`awayTeam`
+ * are nullable; the underlying `homeTeamId`/`awayTeamId` are likewise nullable.
  */
 export const fixtureWithTeamsSchema = fixtureSchema.extend({
-  homeTeam: teamSchema,
-  awayTeam: teamSchema,
+  homeTeam: teamSchema.nullable(),
+  awayTeam: teamSchema.nullable(),
   stadium: stadiumSchema,
   locked: z.boolean(),
 });
 export type FixtureWithTeams = z.infer<typeof fixtureWithTeamsSchema>;
+
+/**
+ * Body for the admin "assign knockout teams" action. Either id may be null to
+ * leave/clear the slot as TBD; assigning requires two distinct existing teams
+ * (enforced in the service).
+ */
+export const fixtureTeamsInputSchema = z.object({
+  homeTeamId: z.number().int().nullable(),
+  awayTeamId: z.number().int().nullable(),
+});
+export type FixtureTeamsInput = z.infer<typeof fixtureTeamsInputSchema>;
 
 /**
  * Query string for `GET /fixtures`. `stage` is an optional `StageTab`; anything

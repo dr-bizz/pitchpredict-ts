@@ -278,6 +278,12 @@ function ChampionPickCard({
                 </MenuItem>
               ))}
             </Select>
+            <Typography
+              variant="caption"
+              sx={{ mt: 1, display: 'block', color: 'text.secondary' }}
+            >
+              Champion picks close Sat Jun 20, 6:00 PM ET
+            </Typography>
           </FormControl>
         )}
 

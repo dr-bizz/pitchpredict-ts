@@ -9,7 +9,7 @@ import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
-import type { FixtureWithTeams, Prediction } from '@pitchpredict/contracts';
+import type { FixtureWithTeams, Prediction, Team } from '@pitchpredict/contracts';
 import { useEffect, useState } from 'react';
 import { usePrediction } from '../api/hooks/usePrediction';
 import { ScoreStepper } from './ScoreStepper';
@@ -37,11 +37,14 @@ function kickoffLabel(kickoffAt: Date): string {
 }
 
 interface TeamColumnProps {
-  flagEmoji: string;
-  name: string;
+  /** Null when the knockout slot has no team assigned yet (TBD). */
+  team: Team | null;
 }
 
-function TeamColumn({ flagEmoji, name }: TeamColumnProps) {
+function TeamColumn({ team }: TeamColumnProps) {
+  // Knockout slots may be unassigned: show a neutral placeholder, no flag.
+  const flagEmoji = team ? team.flagEmoji : '⚽';
+  const name = team ? team.name : 'TBD';
   return (
     <Box
       sx={{
@@ -54,7 +57,11 @@ function TeamColumn({ flagEmoji, name }: TeamColumnProps) {
         textAlign: 'center',
       }}
     >
-      <Box component="span" sx={{ fontSize: '1.875rem', lineHeight: 1 }} aria-hidden>
+      <Box
+        component="span"
+        sx={{ fontSize: '1.875rem', lineHeight: 1, color: team ? undefined : 'text.disabled' }}
+        aria-hidden
+      >
         {flagEmoji}
       </Box>
       <Typography
@@ -65,6 +72,7 @@ function TeamColumn({ flagEmoji, name }: TeamColumnProps) {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+          color: team ? undefined : 'text.disabled',
         }}
       >
         {name}
@@ -223,10 +231,7 @@ function FinishedBody({
           gap: 1.5,
         }}
       >
-        <TeamColumn
-          flagEmoji={fixture.homeTeam.flagEmoji}
-          name={fixture.homeTeam.name}
-        />
+        <TeamColumn team={fixture.homeTeam} />
         <Typography
           sx={{
             flexShrink: 0,
@@ -243,10 +248,7 @@ function FinishedBody({
           </Box>
           {fixture.awayScore}
         </Typography>
-        <TeamColumn
-          flagEmoji={fixture.awayTeam.flagEmoji}
-          name={fixture.awayTeam.name}
-        />
+        <TeamColumn team={fixture.awayTeam} />
       </Box>
 
       <Divider sx={{ mt: 'auto' }} />
@@ -307,10 +309,7 @@ function LockedBody({
           gap: 1.5,
         }}
       >
-        <TeamColumn
-          flagEmoji={fixture.homeTeam.flagEmoji}
-          name={fixture.homeTeam.name}
-        />
+        <TeamColumn team={fixture.homeTeam} />
         <Box
           sx={{
             display: 'flex',
@@ -323,7 +322,7 @@ function LockedBody({
             value={prediction?.homeScore ?? 0}
             onChange={() => undefined}
             disabled
-            label={`Your predicted ${fixture.homeTeam.name} goals`}
+            label={`Your predicted ${fixture.homeTeam?.name ?? 'home'} goals`}
           />
           <Typography
             variant="caption"
@@ -340,13 +339,10 @@ function LockedBody({
             value={prediction?.awayScore ?? 0}
             onChange={() => undefined}
             disabled
-            label={`Your predicted ${fixture.awayTeam.name} goals`}
+            label={`Your predicted ${fixture.awayTeam?.name ?? 'away'} goals`}
           />
         </Box>
-        <TeamColumn
-          flagEmoji={fixture.awayTeam.flagEmoji}
-          name={fixture.awayTeam.name}
-        />
+        <TeamColumn team={fixture.awayTeam} />
       </Box>
 
       <Box
@@ -360,9 +356,11 @@ function LockedBody({
       >
         <LockIcon sx={{ fontSize: 14, color: 'text.disabled' }} aria-hidden />
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {prediction
-            ? 'Your prediction · locked at kickoff'
-            : 'Predictions closed at kickoff.'}
+          {!fixture.homeTeam || !fixture.awayTeam
+            ? 'Teams to be confirmed.'
+            : prediction
+              ? 'Your prediction · locked at kickoff'
+              : 'Predictions closed at kickoff.'}
         </Typography>
       </Box>
     </>
@@ -423,16 +421,13 @@ function OpenBody({
           gap: 1.5,
         }}
       >
-        <TeamColumn
-          flagEmoji={fixture.homeTeam.flagEmoji}
-          name={fixture.homeTeam.name}
-        />
+        <TeamColumn team={fixture.homeTeam} />
         <Box sx={{ display: 'flex', flexShrink: 0, alignItems: 'center', gap: 1.5 }}>
           <ScoreStepper
             value={home}
             onChange={onHome}
             disabled={disabled}
-            label={`${fixture.homeTeam.name} goals`}
+            label={`${fixture.homeTeam?.name ?? 'home'} goals`}
           />
           <Typography
             variant="caption"
@@ -449,13 +444,10 @@ function OpenBody({
             value={away}
             onChange={onAway}
             disabled={disabled}
-            label={`${fixture.awayTeam.name} goals`}
+            label={`${fixture.awayTeam?.name ?? 'away'} goals`}
           />
         </Box>
-        <TeamColumn
-          flagEmoji={fixture.awayTeam.flagEmoji}
-          name={fixture.awayTeam.name}
-        />
+        <TeamColumn team={fixture.awayTeam} />
       </Box>
 
       <Box

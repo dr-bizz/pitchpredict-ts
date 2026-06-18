@@ -45,12 +45,8 @@ export const fixtures = pgTable(
   'fixtures',
   {
     id: serial('id').primaryKey(),
-    homeTeamId: integer('home_team_id')
-      .notNull()
-      .references(() => teams.id),
-    awayTeamId: integer('away_team_id')
-      .notNull()
-      .references(() => teams.id),
+    homeTeamId: integer('home_team_id').references(() => teams.id),
+    awayTeamId: integer('away_team_id').references(() => teams.id),
     stadiumId: integer('stadium_id')
       .notNull()
       .references(() => stadiums.id),
