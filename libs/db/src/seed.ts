@@ -16,7 +16,7 @@
  *     past, record final scores, mark them finished, and recompute points
  *     (mirrors `ScoringService.scoreFixture`).
  *
- * Run with: `nx run db:seed` (or `tsx libs/db/src/seed.ts`). Requires a live
+ * Run with: `npm run db:seed` (or `tsx libs/db/src/seed.ts`). Requires a live
  * `DATABASE_URL`. This module also typechecks without one — `seedDatabase` only
  * touches the DB when called.
  */

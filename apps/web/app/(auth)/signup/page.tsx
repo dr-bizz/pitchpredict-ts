@@ -13,9 +13,8 @@ import { registerSchema } from '@pitchpredict/contracts';
 
 /**
  * Signup screen. Validates with the shared `registerSchema` (including the
- * password-confirmation match), POSTs through the BFF proxy to the Nest
- * `/auth/register` endpoint, then signs the new user in and redirects to the
- * dashboard.
+ * password-confirmation match), POSTs to the app's own `/api/auth/register`
+ * route handler, then signs the new user in and redirects to the dashboard.
  */
 export default function SignupPage() {
   const router = useRouter();
@@ -53,7 +52,7 @@ export default function SignupPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/proxy/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsed.data),

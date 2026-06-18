@@ -6,11 +6,11 @@ import { test, expect } from '@playwright/test';
  * Flow: login as the demo user -> open Predictions -> set a score on an open
  * fixture -> save -> confirm it persists -> Leaderboard renders.
  *
- * RUNNING: needs the full stack live against a seeded DB:
- *   1. Migrate + seed Postgres (`nx run db:seed`).
- *   2. Start the API (`nx serve api`) and the web app (`nx serve web` /
- *      `nx run web:dev`) — the Playwright `webServer` config starts web for you.
- *   3. `nx e2e web-e2e`.
+ * RUNNING: needs the web app live against a seeded DB:
+ *   1. Migrate + seed Postgres (`npm run db:seed`).
+ *   2. The Playwright `webServer` config starts the Next.js app (`npm run dev`)
+ *      for you — or run it yourself if you prefer.
+ *   3. `npm run e2e`.
  *
  * Without a seeded stack the spec is skipped (green by construction). Set
  * `E2E_SEEDED=1` (and optionally `E2E_EMAIL` / `E2E_PASSWORD`) to enable it.

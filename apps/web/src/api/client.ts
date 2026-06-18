@@ -1,10 +1,10 @@
 import type { ZodType } from 'zod';
 
 /**
- * Browser-side API client. Every request goes through the BFF proxy
- * (`/api/proxy/*`), never directly to Nest. Non-2xx responses throw a typed
- * `ApiError` carrying the upstream status and a best-effort message. Successful
- * responses are validated against the relevant `contracts` schema.
+ * Browser-side API client. Every request hits the app's own `/api/*` route
+ * handlers directly. Non-2xx responses throw a typed `ApiError` carrying the
+ * upstream status and a best-effort message. Successful responses are validated
+ * against the relevant `contracts` schema.
  */
 
 export class ApiError extends Error {
@@ -18,7 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-const PROXY_BASE = '/api/proxy';
+const PROXY_BASE = '/api';
 
 /** Keys whose string values are ISO timestamps and must be revived to `Date`. */
 const DATE_KEYS = new Set([

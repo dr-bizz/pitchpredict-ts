@@ -1,10 +1,10 @@
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/apps/web',
-  plugins: [nxViteTsPaths()],
+  plugins: [tsconfigPaths({ projects: ['../../tsconfig.base.json'] })],
   test: {
     name: 'web',
     watch: false,

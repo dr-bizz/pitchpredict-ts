@@ -13,8 +13,8 @@ import { resetSchema } from '@pitchpredict/contracts';
 /**
  * Reset-password screen. Reads the reset `token` from the URL query, validates
  * with the shared `resetSchema` (password length + confirmation match), and
- * POSTs through the BFF proxy to the Nest `/auth/reset` endpoint. On success
- * redirects to login.
+ * POSTs to the app's own `/api/auth/reset` route handler. On success redirects
+ * to login.
  */
 function ResetForm() {
   const searchParams = useSearchParams();
@@ -54,7 +54,7 @@ function ResetForm() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/proxy/auth/reset', {
+      const res = await fetch('/api/auth/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsed.data),

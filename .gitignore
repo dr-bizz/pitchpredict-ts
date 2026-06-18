@@ -44,10 +44,6 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Nx
-.nx/cache
-.nx/workspace-data
-
 # Playwright
 test-output/
 /playwright-report

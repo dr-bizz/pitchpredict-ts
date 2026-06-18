@@ -1,16 +1,15 @@
 //@ts-check
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { composePlugins, withNx } = require('@nx/next');
+const path = require('path');
 const withPWAInit = require('@ducanh2912/next-pwa').default;
 
 /**
- * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
+ * @type {import('next').NextConfig}
  **/
 const nextConfig = {
-  // Use this to set Nx-specific options
-  // See: https://nx.dev/recipes/next/next-config-setup
-  nx: {},
+  // The app lives at apps/web within the repo; point Next's file tracer at the
+  // repo root so it correctly resolves the @pitchpredict/* libs under libs/.
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 const withPWA = withPWAInit({
@@ -51,10 +50,4 @@ const withPWA = withPWAInit({
   },
 });
 
-const plugins = [
-  // Add more Next.js plugins to this list if needed.
-  withNx,
-  withPWA,
-];
-
-module.exports = composePlugins(...plugins)(nextConfig);
+module.exports = withPWA(nextConfig);

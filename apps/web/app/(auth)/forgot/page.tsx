@@ -11,8 +11,8 @@ import { forgotSchema } from '@pitchpredict/contracts';
 
 /**
  * Forgot-password screen. Validates with the shared `forgotSchema` and POSTs
- * through the BFF proxy to the Nest `/auth/forgot` endpoint, which always
- * returns 200 (no account enumeration). Shows a generic confirmation.
+ * to the app's own `/api/auth/forgot` route handler, which always returns 200
+ * (no account enumeration). Shows a generic confirmation.
  */
 export default function ForgotPage() {
   const [email, setEmail] = useState('');
@@ -34,7 +34,7 @@ export default function ForgotPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/proxy/auth/forgot', {
+      const res = await fetch('/api/auth/forgot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(parsed.data),
