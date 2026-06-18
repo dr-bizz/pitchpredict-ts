@@ -1,15 +1,19 @@
+import NextAuth from 'next-auth';
 import { NextResponse } from 'next/server';
-import { auth } from './src/auth';
+import authConfig from './src/auth.config';
 
 /**
  * Route protection. Unauthenticated users are redirected to `/login`, except on
  * the public auth pages. The auth, JWKS, and proxy API routes handle their own
  * authorization, so they are excluded via the matcher below.
+ *
+ * Imports authConfig (edge-safe — no db/bcrypt) instead of the full auth.ts
+ * instance to keep Drizzle/postgres/bcrypt out of the Edge bundle.
  */
 
 const PUBLIC_PATHS = ['/login', '/signup', '/forgot', '/reset'];
 
-export default auth((req) => {
+export default NextAuth(authConfig).auth((req) => {
   const { pathname } = req.nextUrl;
 
   const isPublic = PUBLIC_PATHS.some(
