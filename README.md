@@ -52,9 +52,9 @@ All keys live in `.env.example`. Summary:
 Generate and apply migrations, then seed:
 
 ```bash
-npx nx run db:generate   # drizzle-kit generate — writes SQL migrations
-npx nx run db:migrate    # drizzle-kit migrate — applies them to DATABASE_URL
-npx nx run db:seed       # populate the demo world (destructive rebuild)
+npm run db:generate   # drizzle-kit generate — writes SQL migrations
+npm run db:migrate    # drizzle-kit migrate — applies them to DATABASE_URL
+npm run db:seed       # populate the demo world (destructive rebuild)
 ```
 
 The seed creates 48 teams (groups A–L), stadiums, 2026 group-stage fixtures,
@@ -67,7 +67,7 @@ predictions, champion picks, and these logins (all password `worldcup2026`):
 ## Run
 
 ```bash
-npx nx serve web    # Next.js on http://localhost:3000
+npm run dev    # Next.js on http://localhost:3000
 ```
 
 Open http://localhost:3000 and log in with a seeded account.
@@ -75,24 +75,22 @@ Open http://localhost:3000 and log in with a seeded account.
 ## Test, lint, build
 
 ```bash
-npx nx run-many -t test            # unit tests (Vitest)
-npx nx run-many -t lint            # ESLint across all projects
-npx nx run-many -t build           # production builds
-npx nx run-many -t lint build test # everything
+npm test          # unit tests (Vitest) across web + libs
+npm run lint      # ESLint across the repo
+npm run build     # production build of the web app
 ```
 
 ### End-to-end suite
 
-The web e2e suite needs a **seeded** Postgres (`nx run db:seed`). Without one it is
-green by construction (skipped, with a notice) so `nx run-many -t test/lint` stays
-clean in CI.
+The web e2e suite needs a **seeded** Postgres (`npm run db:seed`). Without one it is
+green by construction (skipped, with a notice) so `npm test` stays clean in CI.
 
 **Web e2e** (`apps/web-e2e`, Playwright) drives the real UI: log in as demo →
 predict an open fixture → save → leaderboard renders. Enable the flow with
 `E2E_SEEDED=1`:
 
 ```bash
-E2E_SEEDED=1 npx nx e2e web-e2e   # starts the web dev server and runs the flow
+E2E_SEEDED=1 npm run e2e   # starts the web dev server and runs the flow
 ```
 
 ## Project layout
