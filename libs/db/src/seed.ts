@@ -172,8 +172,11 @@ export async function seedDatabase(db: Db = singletonDb): Promise<void> {
 
   for (const spec of specs) {
     const stadium = insertedStadiums[spec.stadiumIdx];
-    let homeTeamId: number;
-    let awayTeamId: number;
+    // Group stage seeds real team codes; knockout fixtures are seeded with NULL
+    // teams (bracket slots stay blank until the admin assigns them as groups
+    // conclude). The non-group `homeSlot`/`awaySlot` placeholders are ignored.
+    let homeTeamId: number | null = null;
+    let awayTeamId: number | null = null;
     if ('home' in spec.ref) {
       const home = teamByCode.get(spec.ref.home);
       const away = teamByCode.get(spec.ref.away);
@@ -184,9 +187,6 @@ export async function seedDatabase(db: Db = singletonDb): Promise<void> {
       }
       homeTeamId = home.id;
       awayTeamId = away.id;
-    } else {
-      homeTeamId = insertedTeams[spec.ref.homeSlot].id;
-      awayTeamId = insertedTeams[spec.ref.awaySlot].id;
     }
 
     const realKickoff = spec.kickoffAt;

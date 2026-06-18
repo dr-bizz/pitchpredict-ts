@@ -6,7 +6,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import Divider from '@mui/material/Divider';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
+import Select, { type SelectChangeEvent } from '@mui/material/Select';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -18,12 +23,15 @@ import {
   type FixtureWithTeams,
   type Stage,
   type Status,
+  type Team,
 } from '@pitchpredict/contracts';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import {
+  useAdminAssignTeams,
   useAdminFixtures,
   useAdminScoreFixture,
+  useAdminTeams,
 } from '../../../src/api/hooks/useAdminFixtures';
 import { ScoreStepper } from '../../../src/components/ScoreStepper';
 
@@ -31,6 +39,16 @@ const STAGE_OPTIONS = STAGE_TABS.filter(
   (t): t is Stage => t !== 'upcoming'
 );
 const STATUS_OPTIONS = zStatus.options;
+
+/** Knockout stages, in bracket order, for the team-assignment section. */
+const KNOCKOUT_STAGES = [
+  'r32',
+  'r16',
+  'qf',
+  'sf',
+  'third_place',
+  'final',
+] as const satisfies readonly Stage[];
 
 const STAGE_LABELS: Record<Stage, string> = {
   group: 'Group',
@@ -118,6 +136,12 @@ function FixtureResultRow({
   const [away, setAway] = useState<number>(fixture.awayScore ?? 0);
   const score = useAdminScoreFixture();
 
+  // Knockout fixtures may have unassigned teams (TBD) — fall back gracefully.
+  const homeName = fixture.homeTeam?.name ?? 'TBD';
+  const awayName = fixture.awayTeam?.name ?? 'TBD';
+  const homeFlag = fixture.homeTeam?.flagEmoji ?? '⚽';
+  const awayFlag = fixture.awayTeam?.flagEmoji ?? '⚽';
+
   const kickoff = fixture.kickoffAt.toLocaleString(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -137,7 +161,7 @@ function FixtureResultRow({
       {
         onSuccess: () =>
           feedback.onSuccess(
-            `Saved ${fixture.homeTeam.code} ${parsed.data.homeScore}–${parsed.data.awayScore} ${fixture.awayTeam.code}.`
+            `Saved ${fixture.homeTeam?.code ?? 'TBD'} ${parsed.data.homeScore}–${parsed.data.awayScore} ${fixture.awayTeam?.code ?? 'TBD'}.`
           ),
         onError: (err) =>
           feedback.onError(
@@ -167,13 +191,13 @@ function FixtureResultRow({
         <Box sx={{ minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {fixture.homeTeam.flagEmoji} {fixture.homeTeam.name}
+              {homeFlag} {homeName}
             </Typography>
             <Typography component="span" sx={{ color: 'text.disabled' }}>
               vs
             </Typography>
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {fixture.awayTeam.name} {fixture.awayTeam.flagEmoji}
+              {awayName} {awayFlag}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
@@ -205,7 +229,7 @@ function FixtureResultRow({
             value={home}
             onChange={setHome}
             disabled={score.isPending}
-            label={`${fixture.homeTeam.name} goals`}
+            label={`${homeName} goals`}
           />
           <Typography sx={{ fontWeight: 800, color: 'text.disabled' }}>
             –
@@ -214,7 +238,7 @@ function FixtureResultRow({
             value={away}
             onChange={setAway}
             disabled={score.isPending}
-            label={`${fixture.awayTeam.name} goals`}
+            label={`${awayName} goals`}
           />
           <Button
             variant={finished ? 'outlined' : 'contained'}
@@ -233,6 +257,224 @@ function FixtureResultRow({
         </Box>
       </Stack>
     </Paper>
+  );
+}
+
+/** One <select> for a knockout slot; `''` is the unassigned (TBD) state. */
+function TeamSelect({
+  label,
+  value,
+  teams,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  value: number | null;
+  teams: Team[];
+  disabled: boolean;
+  onChange: (id: number | null) => void;
+}) {
+  const labelId = `${label.replace(/\s+/g, '-').toLowerCase()}-label`;
+  return (
+    <FormControl fullWidth size="small">
+      <InputLabel id={labelId}>{label}</InputLabel>
+      <Select
+        labelId={labelId}
+        label={label}
+        value={value == null ? '' : String(value)}
+        disabled={disabled}
+        onChange={(e: SelectChangeEvent) =>
+          onChange(e.target.value === '' ? null : Number(e.target.value))
+        }
+      >
+        <MenuItem value="">
+          <em>TBD</em>
+        </MenuItem>
+        {teams.map((team) => (
+          <MenuItem key={team.id} value={String(team.id)}>
+            <span aria-hidden>{team.flagEmoji}</span>
+            <Box component="span" sx={{ ml: 1 }}>
+              {team.name}
+            </Box>
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+function KnockoutTeamsRow({
+  fixture,
+  teams,
+  feedback,
+}: {
+  fixture: FixtureWithTeams;
+  teams: Team[];
+  feedback: FeedbackHandlers;
+}) {
+  const [homeTeamId, setHomeTeamId] = useState<number | null>(
+    fixture.homeTeamId ?? null
+  );
+  const [awayTeamId, setAwayTeamId] = useState<number | null>(
+    fixture.awayTeamId ?? null
+  );
+  const assign = useAdminAssignTeams();
+
+  const kickoff = fixture.kickoffAt.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+
+  const dirty =
+    homeTeamId !== (fixture.homeTeamId ?? null) ||
+    awayTeamId !== (fixture.awayTeamId ?? null);
+
+  const submit = () => {
+    assign.mutate(
+      { fixtureId: fixture.id, input: { homeTeamId, awayTeamId } },
+      {
+        onSuccess: () => feedback.onSuccess('Knockout teams saved.'),
+        onError: (err) =>
+          feedback.onError(
+            err instanceof Error ? err.message : 'Could not save the teams.'
+          ),
+      }
+    );
+  };
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+      <Stack spacing={1.5}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Chip
+            size="small"
+            variant="outlined"
+            label={STAGE_LABELS[fixture.stage]}
+          />
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {fixture.stadium.name} · {fixture.stadium.city} · {kickoff}
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flexDirection: { xs: 'column', sm: 'row' },
+          }}
+        >
+          <TeamSelect
+            label="Home team"
+            value={homeTeamId}
+            teams={teams}
+            disabled={assign.isPending}
+            onChange={setHomeTeamId}
+          />
+          <Typography sx={{ color: 'text.disabled', fontWeight: 700 }}>vs</Typography>
+          <TeamSelect
+            label="Away team"
+            value={awayTeamId}
+            teams={teams}
+            disabled={assign.isPending}
+            onChange={setAwayTeamId}
+          />
+          <Button
+            variant="contained"
+            onClick={submit}
+            disabled={assign.isPending || !dirty}
+            sx={{ whiteSpace: 'nowrap', minWidth: 96 }}
+          >
+            {assign.isPending ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              'Save'
+            )}
+          </Button>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
+function KnockoutTeamsSection({ feedback }: { feedback: FeedbackHandlers }) {
+  // The full 48-team catalog comes from a dedicated admin endpoint — not the
+  // dashboard, whose team list is blanked after the champion-pick deadline,
+  // i.e. exactly when knockout teams are assigned.
+  const {
+    data: teams,
+    isPending: teamsPending,
+    isError: teamsError,
+    error: teamsErr,
+  } = useAdminTeams();
+  const {
+    data: fixtures,
+    isPending: fixturesPending,
+    isError: fixturesError,
+    error: fixturesErr,
+  } = useAdminFixtures();
+
+  // Gate the spinner on the requests themselves, never on a (possibly legitimately
+  // empty) result, so the section can never hang forever.
+  const isPending = teamsPending || fixturesPending;
+  const isError = teamsError || fixturesError;
+  const error = teamsErr ?? fixturesErr;
+
+  return (
+    <Stack spacing={2}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 800 }}>
+          Knockout teams
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Assign teams to knockout matches as the groups conclude.
+        </Typography>
+      </Box>
+
+      {isPending ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : isError ? (
+        <Alert severity="error">
+          {error instanceof Error ? error.message : 'Could not load fixtures.'}
+        </Alert>
+      ) : teams.length === 0 ? (
+        <Alert severity="warning">
+          No teams found. Knockout teams cannot be assigned until the team
+          catalog is available.
+        </Alert>
+      ) : (
+        <Stack spacing={2.5}>
+          {KNOCKOUT_STAGES.map((stage) => {
+            const stageFixtures = fixtures
+              .filter((f) => f.stage === stage)
+              .sort((a, b) => a.kickoffAt.getTime() - b.kickoffAt.getTime());
+            if (stageFixtures.length === 0) return null;
+            return (
+              <Box component="section" key={stage}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}
+                >
+                  {STAGE_LABELS[stage]}
+                </Typography>
+                <Stack spacing={1.5}>
+                  {stageFixtures.map((fixture) => (
+                    <KnockoutTeamsRow
+                      key={fixture.id}
+                      fixture={fixture}
+                      teams={teams}
+                      feedback={feedback}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            );
+          })}
+        </Stack>
+      )}
+    </Stack>
   );
 }
 
@@ -365,6 +607,10 @@ export default function AdminPage() {
           ))}
         </Stack>
       )}
+
+      <Divider />
+
+      <KnockoutTeamsSection feedback={feedback} />
 
       <Snackbar
         open={snack !== null}

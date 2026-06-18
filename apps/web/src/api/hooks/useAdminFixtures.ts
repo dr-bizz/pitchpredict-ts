@@ -2,16 +2,20 @@
 
 import {
   fixtureWithTeamsSchema,
+  teamSchema,
   type FixtureResultInput,
+  type FixtureTeamsInput,
   type FixtureWithTeams,
   type Stage,
   type Status,
+  type Team,
 } from '@pitchpredict/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { apiFetch } from '../client';
+import { apiFetch, assignFixtureTeams } from '../client';
 
 const adminFixturesSchema = z.array(fixtureWithTeamsSchema);
+const adminTeamsSchema = z.array(teamSchema);
 
 export interface AdminFixturesFilters {
   stage?: Stage;
@@ -39,6 +43,19 @@ export function useAdminFixtures(filters: AdminFixturesFilters = {}) {
   });
 }
 
+/**
+ * Full team catalog for knockout assignment (admin role required). Sourced from
+ * a dedicated endpoint, not the dashboard, so it is never empty after the
+ * champion-pick deadline — exactly when knockout teams are actually assigned.
+ */
+export function useAdminTeams() {
+  return useQuery({
+    queryKey: ['adminTeams'] as const,
+    queryFn: ({ signal }) =>
+      apiFetch<Team[]>('/admin/teams', { schema: adminTeamsSchema, signal }),
+  });
+}
+
 export interface AdminScoreVars {
   fixtureId: number;
   input: FixtureResultInput;
@@ -62,6 +79,29 @@ export function useAdminScoreFixture() {
       queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['adminFixtures'] });
+    },
+  });
+}
+
+export interface AdminAssignTeamsVars {
+  fixtureId: number;
+  input: FixtureTeamsInput;
+}
+
+/**
+ * Assign (or clear) a knockout fixture's teams (admin). Refreshes the admin
+ * list and the fixtures/dashboard views, since the assignment changes which
+ * matches are predictable.
+ */
+export function useAdminAssignTeams() {
+  const queryClient = useQueryClient();
+
+  return useMutation<FixtureWithTeams, Error, AdminAssignTeamsVars>({
+    mutationFn: ({ fixtureId, input }) => assignFixtureTeams(fixtureId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminFixtures'] });
+      queryClient.invalidateQueries({ queryKey: ['fixtures'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }

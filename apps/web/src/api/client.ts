@@ -1,4 +1,9 @@
 import type { ZodType } from 'zod';
+import {
+  fixtureWithTeamsSchema,
+  type FixtureTeamsInput,
+  type FixtureWithTeams,
+} from '@pitchpredict/contracts';
 
 /**
  * Browser-side API client. Every request hits the app's own `/api/*` route
@@ -103,4 +108,20 @@ export async function apiFetch<T = unknown>(
   }
 
   return schema.parse(reviveDates(parsedBody)) as T;
+}
+
+/**
+ * Assign (or clear) a knockout fixture's teams (admin). Mirrors the admin
+ * score-fixture call: PATCHes the fixture and returns the updated fixture with
+ * its teams + stadium. Null ids leave/clear a slot as TBD.
+ */
+export function assignFixtureTeams(
+  fixtureId: number,
+  input: FixtureTeamsInput
+): Promise<FixtureWithTeams> {
+  return apiFetch<FixtureWithTeams>(`/admin/fixtures/${fixtureId}/teams`, {
+    method: 'PATCH',
+    body: input,
+    schema: fixtureWithTeamsSchema,
+  });
 }

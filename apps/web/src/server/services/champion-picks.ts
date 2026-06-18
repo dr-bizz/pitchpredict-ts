@@ -1,7 +1,7 @@
 import { db, schema } from '@pitchpredict/db';
 import type { ChampionPick, ChampionPickInput } from '@pitchpredict/contracts';
-import { asc, eq } from 'drizzle-orm';
-import { tournamentStarted } from '../domain/fixture-rules';
+import { eq } from 'drizzle-orm';
+import { championPicksLocked } from '../domain/fixture-rules';
 import { BusinessError } from '../errors';
 
 /** The caller's current champion pick, or null if none. */
@@ -14,16 +14,16 @@ export async function forUser(userId: number): Promise<ChampionPick | null> {
 
 /**
  * Upsert the caller's champion pick (one per user). Rejects with 422 once the
- * tournament has started. Mirrors `ChampionPicksController#upsert_champion_pick`.
+ * champion-pick deadline has passed. Mirrors `ChampionPicksController#upsert_champion_pick`.
  */
 export async function upsert(
   userId: number,
   input: ChampionPickInput,
   now: Date = new Date()
 ): Promise<ChampionPick> {
-  if (await tournamentStartedCheck(now)) {
+  if (championLocked(now)) {
     throw new BusinessError(
-      'Champion picks are locked once the tournament has started'
+      'Champion picks closed on Sat Jun 20, 6:00 PM ET'
     );
   }
 
@@ -39,11 +39,7 @@ export async function upsert(
   return row;
 }
 
-/** True once the earliest fixture's kickoff has passed. */
-export async function tournamentStartedCheck(now: Date = new Date()): Promise<boolean> {
-  const earliest = await db.query.fixtures.findFirst({
-    orderBy: asc(schema.fixtures.kickoffAt),
-    columns: { kickoffAt: true },
-  });
-  return tournamentStarted(earliest?.kickoffAt ?? null, now);
+/** True once the fixed champion-pick deadline has passed. No DB query needed. */
+export function championLocked(now: Date = new Date()): boolean {
+  return championPicksLocked(now);
 }

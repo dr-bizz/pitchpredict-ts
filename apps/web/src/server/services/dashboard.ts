@@ -2,7 +2,7 @@ import { db, schema } from '@pitchpredict/db';
 import type { Dashboard } from '@pitchpredict/contracts';
 import { asc, count, eq } from 'drizzle-orm';
 import { rows as leaderboardRows } from './leaderboard';
-import { tournamentStartedCheck } from './champion-picks';
+import { championLocked as isChampionLocked } from './champion-picks';
 
 /**
  * Aggregated dashboard payload for the caller. Mirrors the Rails
@@ -32,7 +32,7 @@ export async function forUser(userId: number, now: Date = new Date()): Promise<D
     ? { teamId: pick.teamId, team: pick.team }
     : null;
 
-  const championLocked = await tournamentStartedCheck(now);
+  const championLocked = isChampionLocked(now);
   const teams = championLocked
     ? []
     : await db.query.teams.findMany({
