@@ -57,8 +57,8 @@ vitest.config.*.timestamp*
 out
 
 # next-pwa generated service worker artifacts
-apps/web/public/sw.js
-apps/web/public/sw.js.map
-apps/web/public/workbox-*.js
-apps/web/public/workbox-*.js.map
-apps/web/public/fallback-*.js
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/fallback-*.js

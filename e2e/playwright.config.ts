@@ -4,17 +4,17 @@ import { join } from 'path';
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:3000';
 
-// The Playwright config lives at apps/web-e2e; the dev server is started from
-// the repo root so `npm run dev` resolves the root package.json scripts.
-const workspaceRoot = join(__dirname, '../..');
+// The Playwright config lives at e2e/; the dev server is started from the repo
+// root so `npm run dev` resolves the root package.json scripts.
+const workspaceRoot = join(__dirname, '..');
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './src',
-  reporter: [['html', { outputFolder: '../../playwright-report', open: 'never' }]],
-  outputDir: '../../test-output/playwright',
+  reporter: [['html', { outputFolder: '../playwright-report', open: 'never' }]],
+  outputDir: '../test-output/playwright',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL,

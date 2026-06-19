@@ -4,12 +4,12 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "next dev apps/web",
-    "build": "next build apps/web",
-    "start": "next start apps/web",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "e2e": "playwright test --config apps/web-e2e/playwright.config.ts",
+    "e2e": "playwright test --config e2e/playwright.config.ts",
     "db:generate": "drizzle-kit generate --config=libs/db/drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=libs/db/drizzle.config.ts",
     "db:seed": "tsx libs/db/src/seed.ts"

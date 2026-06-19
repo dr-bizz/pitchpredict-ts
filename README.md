@@ -96,10 +96,15 @@ E2E_SEEDED=1 npm run e2e   # starts the web dev server and runs the flow
 ## Project layout
 
 ```
-apps/
-  web/         Next.js PWA (App Router, MUI, NextAuth, API route handlers)
-  web-e2e/     Playwright e2e
+app/           Next.js App Router (pages + API route handlers)
+src/           Client + server code (components, hooks, services, domain)
+public/        Static assets + PWA manifest
+middleware.ts  NextAuth edge middleware
+e2e/           Playwright e2e
 libs/
   contracts/   Shared Zod schemas + types
   db/          Drizzle schema, client, seed
 ```
+
+The Next.js app lives at the repo root (MUI, NextAuth, PWA); `libs/*` are shared
+TypeScript packages imported via the `@pitchpredict/*` path aliases.

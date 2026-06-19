@@ -1,16 +1,11 @@
 //@ts-check
 
-const path = require('path');
 const withPWAInit = require('@ducanh2912/next-pwa').default;
 
 /**
  * @type {import('next').NextConfig}
  **/
-const nextConfig = {
-  // The app lives at apps/web within the repo; point Next's file tracer at the
-  // repo root so it correctly resolves the @pitchpredict/* libs under libs/.
-  outputFileTracingRoot: path.join(__dirname, '../../'),
-};
+const nextConfig = {};
 
 const withPWA = withPWAInit({
   dest: 'public',
